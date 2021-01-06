@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import java.nio.file.Paths;
+import java.util.Collections;
 
 import org.codehaus.plexus.util.Os;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ public class LintMojoTest {
         mojo.setChartDirectory(Paths.get(getClass().getResource("Chart.yaml").toURI()).getParent().toString());
 
         ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
-        doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
+        doReturn(Collections.emptyList()).when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
         doReturn(Paths.get("helm" + (Os.OS_FAMILY == Os.FAMILY_WINDOWS ? ".exe" : ""))).when(mojo).getHelmExecuteablePath();
 
         mojo.execute();

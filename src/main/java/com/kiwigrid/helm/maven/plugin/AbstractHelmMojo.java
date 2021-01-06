@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -61,6 +62,9 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
 	@Parameter(property = "helm.chartDirectory", required = true)
 	private String chartDirectory;
+	
+	@Parameter(property = "helm.failOnNoCharts", defaultValue = "false")
+	private boolean failOnNoCharts;
 
 	@Parameter(property = "helm.chartVersion")
 	private String chartVersion;
@@ -147,34 +151,19 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 	 * @param errorMessage a readable error message that will be shown in case of exceptions
 	 * @param verbose logs STDOUT to Maven info log
 	 * @throws MojoExecutionException on error
+	 * @return All output from the called command (both stdout and stderr)
 	 */
-	void callCli(String command, String errorMessage, final boolean verbose) throws MojoExecutionException {
+	List<String> callCli(String command, String errorMessage, final boolean verbose) throws MojoExecutionException {
 
 		int exitValue;
+		AtomicReference<List<String>> outputs = new AtomicReference<List<String>>(null);
 
 		getLog().debug(command);
 
 		try {
 			final Process p = Runtime.getRuntime().exec(command);
 			new Thread(() -> {
-				BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-				BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-				String inputLine;
-				String errorLine;
-				try {
-					while ((inputLine = input.readLine()) != null) {
-						if (verbose) {
-							getLog().info(inputLine);
-						} else {
-							getLog().debug(inputLine);
-						}
-					}
-					while ((errorLine = error.readLine()) != null) {
-						getLog().error(errorLine);
-					}
-				} catch (IOException e) {
-					getLog().error(e);
-				}
+				outputs.set(captureOutputs(p, verbose));
 			}).start();
 			p.waitFor();
 			exitValue = p.exitValue();
@@ -185,6 +174,40 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 		if (exitValue != 0) {
 			throw new MojoExecutionException(errorMessage);
 		}
+		
+		return outputs.get();
+	}
+	
+	/**
+	 * Captures the outputs of the launched command returning them for optional later inspection
+	 * @param p Process
+	 * @param verbose logs STDOUT to Maven info log
+	 * @return Process output
+	 */
+	List<String> captureOutputs(Process p, boolean verbose) {
+		BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+		String inputLine;
+		String errorLine;
+		List<String> outputs = new ArrayList<>();
+		try {
+			while ((inputLine = input.readLine()) != null) {
+				if (verbose) {
+					getLog().info(inputLine);
+				} else {
+					getLog().debug(inputLine);
+				}
+				outputs.add(inputLine);
+			}
+			while ((errorLine = error.readLine()) != null) {
+				getLog().error(errorLine);
+				outputs.add(errorLine);
+			}
+		} catch (IOException e) {
+			getLog().error(e);
+		}
+
+		return outputs;
 	}
 
 	List<String> getChartDirectories(String path) throws MojoExecutionException {
@@ -205,7 +228,11 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 					.collect(Collectors.toList());
 
 			if (chartDirs.isEmpty()) {
-				getLog().warn("No Charts detected - no Chart.yaml files found below " + path);
+				if (failOnNoCharts) {
+					throw new MojoExecutionException("No Charts detected - no Chart.yaml files found below " + path);
+				} else {
+					getLog().warn("No Charts detected - no Chart.yaml files found below " + path);
+				}
 			}
 
 			return chartDirs;

@@ -162,6 +162,60 @@ and disables the auto-detection feature:
 </build>
 ```
 
+### Installing and Invoking a custom Helm plugin
+
+This example shows installing the [helm unittest](https://github.com/quintush/helm-unittest) plugin and invoking it on your charts:
+
+```xml
+<build>
+  <plugins>
+  ...
+    <plugin>
+      <groupId>com.kiwigrid</groupId>
+      <artifactId>helm-maven-plugin</artifactId>
+      <version>5.7</version>
+      <executions>
+        <execution>
+          <id>install-unittest</id>
+          <phase>generate-resources</phase>
+          <goals>
+            <goal>install-plugin</goal>
+          </goals>
+          <configuration>
+            <helmPlugins>
+              <helmPlugin>
+                <name>unittest</name>
+                <url>https://github.com/quintush/helm-unittest</url>
+              </helmPlugin>
+            </helmPlugins>
+          </configuration>
+        </execution>
+        <execution>
+          <id>run-unittest</id>
+          <phase>test</phase>
+          <goals>
+            <goal>invoke-plugin</goal>
+          </goals>
+          <configuration>
+            <failOnNoCharts>true</failOnNoCharts>
+            <perChart>true</perChart>
+            <helmPlugins>
+              <helmPlugin>
+                <name>unittest</name>
+                <url>https://github.com/quintush/helm-unittest</url>
+                <args>
+                  <args>--helm3</args>
+                </args>
+              </helmPlugin>
+            </helmPlugins>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
 ### More Complex Example
 ```xml
 <build>
@@ -231,14 +285,17 @@ and disables the auto-detection feature:
 - Helm does not need to be installed
 - Upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum) or [Artifactory](https://jfrog.com/artifactory/)
 - Repository names are interpreted as server IDs to retrieve basic authentication from server list in settings.xml.
+- Install and Invoke arbitrary Helm plugins
 
 # Usage
 
 ## Goals
 
 - `helm:init` initializes Helm by downloading a specific version
+- `helm:install-plugin` installs Helm plugins
 - `helm:dependency-build` resolves the chart dependencies  
 - `helm:package` packages the given charts (chart.tar.gz)
+- `helm:invoke-plugin` allows Helm plugins to be invoked
 - `helm:lint` tests the given charts
 - `helm:dry-run` simulates an install
 - `helm:upload` upload charts via HTTP PUT
@@ -253,6 +310,7 @@ Parameter | Type | User Property | Required | Description
 `<helmDownloadUrl>` | string | helm.downloadUrl | false | URL to download helm. Leave empty to autodetect URL based upon OS and architecture.
 `<helmVersion>` | string | helm.version | false | Version of helm to download. Defaults to 3.2.0
 `<excludes>` | list of strings | helm.excludes | false | list of chart directories to exclude
+`<failOnNoCharts>` | boolean | helm.failOnNoCharts | false | Whether to fail goals that require charts to operate on if no charts are detected.  Defaults to `false`
 `<useLocalHelmBinary>` | boolean | helm.useLocalHelmBinary | false | Controls whether a local binary should be used instead of downloading it. If set to `true` path has to be set with property `executableDirectory`
 `<autoDetectLocalHelmBinary>` | boolean | helm.autoDetectLocalHelmBinary | true | Controls whether the local binary should be auto-detected from `PATH` environment variable. If set to `false` the binary in `<helmExecutableDirectory>` is used. This property has no effect unless `<useLocalHelmBinary>` is set to `true`.
 `<helmExecutableDirectory>` | string | helm.executableDirectory | false | directory of your helm installation (default: `${project.build.directory}/helm`)
@@ -260,20 +318,24 @@ Parameter | Type | User Property | Required | Description
 `<registryConfig>` | string | helm.registryConfig | false | path to the registry config file
 `<repositoryCache>` | string | helm.repositoryCache | false | path to the file containing cached repository indexes
 `<repositoryConfig>` | string | helm.repositoryConfig | false | path to the file containing repository names and URLs
-`<helmExtraRepos>` | list of [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/HelmRepository.java) | helm.extraRepos | false | adds extra repositories while init
-`<uploadRepoStable>`| [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/HelmRepository.java) | helm.uploadRepo.stable | true | Upload repository for stable charts
-`<uploadRepoSnapshot>`| [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/HelmRepository.java) | helm.uploadRepo.snapshot | false | Upload repository for snapshot charts (determined by version postfix 'SNAPSHOT')
+`<helmExtraRepos>` | list of [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/pojo/HelmRepository.java) | helm.extraRepos | false | adds extra repositories with the `init` goal
+`<helmPlugins>` | list of [HelmPlugin](./src/main/java/com/kiwigrid/helm/maven/plugin/pojo/HelmPlugin.java) | helm.plugins | true | Specifies Helm plugins to use with the `install-plugin` and `invoke-plugin` goals
+`<perChart>` | boolean | helm.invoke-plugin.perChart | false | If `true` then `invoke-plugin` on each chart, if `false` invoke it only once
+`<uploadRepoStable>`| [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/pojo/HelmRepository.java) | helm.uploadRepo.stable | true | Upload repository for stable charts
+`<uploadRepoSnapshot>`| [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/pojo/HelmRepository.java) | helm.uploadRepo.snapshot | false | Upload repository for snapshot charts (determined by version postfix 'SNAPSHOT')
 `<lintStrict>` | boolean | helm.lint.strict | false | run lint command with strict option (fail on lint warnings)
 `<addDefaultRepo>` | boolean | helm.init.add-default-repo | true | If true, stable repo (https://charts.helm.sh/stable) will be added
 `<skip>` | boolean | helm.skip | false | skip plugin execution
-`<skipInit>` | boolean | helm.init.skip | false | skip init goal
-`<skipLint>` | boolean | helm.lint.skip | false | skip lint goal
-`<skipDryRun>` | boolean | helm.dry-run.skip | false | skip dry-run goal
-`<skipDependencyBuild>` | boolean | helm.dependency-build.skip | false | skip dependency-build goal
-`<skipPackage>` | boolean | helm.package.skip | false | skip package goal
-`<skipUpload>` | boolean | helm.upload.skip | false | skip upload goal
+`<skipInit>` | boolean | helm.init.skip | false | skip `init` goal
+`<skipLint>` | boolean | helm.lint.skip | false | skip `lint` goal
+`<skipDryRun>` | boolean | helm.dry-run.skip | false | skip `dry-run` goal
+`<skipDependencyBuild>` | boolean | helm.dependency-build.skip | false | skip `dependency-build` goal
+`<skipInstallPlugin>` | boolean | helm.install-plugin.skip | false | skip `install-plugin` goal
+`<skipInvokePlugin>` | boolean | helm.invoke-plugin.skip | false | skip `invoke-plugin` goal
+`<skipPackage>` | boolean | helm.package.skip | false | skip `package` goal
+`<skipUpload>` | boolean | helm.upload.skip | false | skip `upload` goal
 `<security>` | string | helm.security | false | path to your [settings-security.xml](https://maven.apache.org/guides/mini/guide-encryption.html) (default: `~/.m2/settings-security.xml`)
-`<values>` | [ValueOverride](./src/main/java/com/kiwigrid/helm/maven/plugin/ValueOverride.java) | helm.values | false | override some values for linting with helm.values.overrides (--set option), helm.values.stringOverrides (--set-string option), helm.values.fileOverrides (--set-file option) and last but not least helm.values.yamlFile (--values option)
+`<values>` | [ValueOverride](./src/main/java/com/kiwigrid/helm/maven/plugin/pojo/ValueOverride.java) | helm.values | false | override some values for linting with helm.values.overrides (--set option), helm.values.stringOverrides (--set-string option), helm.values.fileOverrides (--set-file option) and last but not least helm.values.yamlFile (--values option)
 
 ## Packaging with the Helm Lifecycle
 

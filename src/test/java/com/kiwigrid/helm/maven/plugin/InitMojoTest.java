@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ public class InitMojoTest {
 	public void initMojoHappyPathWhenDownloadHelm(String os, InitMojo mojo) throws Exception {
 
 		// prepare execution
-		doNothing().when(mojo).callCli(contains("helm "), anyString(), anyBoolean());
+		doReturn(Collections.emptyList()).when(mojo).callCli(contains("helm "), anyString(), anyBoolean());
 		// getHelmExecuteablePath is system-depending and has to be mocked for that reason
 		// as SystemUtils.IS_OS_WINDOWS will always return false on a *NIX system
 		doReturn(Paths.get("dummy/path/to/helm").toAbsolutePath()).when(mojo).getHelmExecuteablePath();
@@ -61,7 +62,7 @@ public class InitMojoTest {
 	public void autoDownloadHelm(InitMojo mojo) throws Exception {
 
 		// prepare execution
-		doNothing().when(mojo).callCli(contains("helm "), anyString(), anyBoolean());
+		doReturn(Collections.emptyList()).when(mojo).callCli(contains("helm "), anyString(), anyBoolean());
 		// getHelmExecuteablePath is system-depending and has to be mocked for that reason
 		// as SystemUtils.IS_OS_WINDOWS will always return false on a *NIX system
 		doReturn(Paths.get("dummy/path/to/helm").toAbsolutePath()).when(mojo).getHelmExecuteablePath();
@@ -82,7 +83,7 @@ public class InitMojoTest {
 
 		// prepare execution
 		ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
-		doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
+		doReturn(Collections.emptyList()).when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
 		mojo.setHelmDownloadUrl(getOsSpecificDownloadURL());
 		mojo.setAddDefaultRepo(true);
 
@@ -103,7 +104,7 @@ public class InitMojoTest {
 
 		// prepare execution
 		ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
-		doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
+		doReturn(Collections.emptyList()).when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
 		mojo.setHelmDownloadUrl(getOsSpecificDownloadURL());
 		mojo.setRegistryConfig("/path/to/my/registry.json");
 		mojo.setRepositoryCache("/path/to/my/repository/cache");
