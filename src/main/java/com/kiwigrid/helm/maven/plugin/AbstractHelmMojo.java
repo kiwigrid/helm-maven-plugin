@@ -1,12 +1,13 @@
 package com.kiwigrid.helm.maven.plugin;
 
+import com.kiwigrid.helm.maven.plugin.pojo.HelmRepository;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.PasswordAuthentication;
-import java.nio.file.Files;
 import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,8 +18,6 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.kiwigrid.helm.maven.plugin.pojo.HelmRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
@@ -41,7 +40,7 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
  */
 public abstract class AbstractHelmMojo extends AbstractMojo {
 
-	@Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
+	@Component(role = SecDispatcher.class, hint = "default")
 	private SecDispatcher securityDispatcher;
 
 	@Parameter(property = "helm.useLocalHelmBinary", defaultValue = "false")
@@ -291,7 +290,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 			if (repository.getPassword() == null) {
 				throw new IllegalArgumentException("Repo " + id + " has a username but no password defined.");
 			}
-			getLog().debug("Repo " + id + " has credentials definded, skip searching in server list.");
+			getLog().info("Repo " + id + " has credentials defined, skip searching in server list.");
 			return new PasswordAuthentication(repository.getUsername(), repository.getPassword().toCharArray());
 		}
 
@@ -301,7 +300,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 			return null;
 		}
 
-		getLog().debug("Use credentials from server list for " + id + ".");
+		getLog().info("Use credentials from server list for " + id + ".");
 		if (server.getUsername() == null || server.getPassword() == null) {
 			throw new IllegalArgumentException("Repo "
 					+ id

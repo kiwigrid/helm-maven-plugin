@@ -2,11 +2,11 @@
 
 This is a Maven plugin for testing, packaging and uploading HELM charts.
 
-"HELM is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources." 
+"_HELM is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources._" 
 
 Visit https://docs.helm.sh for detailed information.
 
-Currently the upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum) and [Artifactory](https://jfrog.com/artifactory/) is supported.
+Currently the upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum), [Artifactory](https://jfrog.com/artifactory/), [Nexus](https://www.sonatype.com/nexus/repository-pro) and [Harbor](https://github.com/goharbor/harbor) is supported.
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kiwigrid/helm-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kiwigrid/helm-maven-plugin)
 
@@ -229,7 +229,7 @@ and disables the auto-detection feature:
 - Test Helm charts (Helm lint)
 - Recursive chart detection (subcharts)
 - Helm does not need to be installed
-- Upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum) or [Artifactory](https://jfrog.com/artifactory/)
+- Upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum), [Artifactory](https://jfrog.com/artifactory/), [Nexus](https://www.sonatype.com/nexus/repository-pro) or [Harbor](https://github.com/goharbor/harbor)
 - Repository names are interpreted as server IDs to retrieve basic authentication from server list in settings.xml.
 
 # Usage

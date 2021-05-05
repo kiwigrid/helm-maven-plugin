@@ -7,5 +7,5 @@ package com.kiwigrid.helm.maven.plugin.pojo;
  * @since 2.4
  */
 public enum RepoType {
-	CHARTMUSEUM, ARTIFACTORY, NEXUS
+	CHARTMUSEUM, ARTIFACTORY, NEXUS, HARBOR
 }

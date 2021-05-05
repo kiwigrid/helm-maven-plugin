@@ -1,13 +1,13 @@
 package com.kiwigrid.helm.maven.plugin;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 import com.kiwigrid.helm.maven.plugin.exception.BadUploadException;
 import com.kiwigrid.helm.maven.plugin.junit.MojoExtension;
@@ -15,15 +15,23 @@ import com.kiwigrid.helm.maven.plugin.junit.MojoProperty;
 import com.kiwigrid.helm.maven.plugin.junit.SystemPropertyExtension;
 import com.kiwigrid.helm.maven.plugin.pojo.HelmRepository;
 import com.kiwigrid.helm.maven.plugin.pojo.RepoType;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ExtendWith({ SystemPropertyExtension.class, MojoExtension.class })
 @MojoProperty(name = "helmDownloadUrl", value = "https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz")
@@ -69,9 +77,10 @@ public class UploadMojoTest {
 		
 		assertNotNull(mojo.getConnectionForUploadToArtifactory(fileToUpload));
 	}
-	
+
 	@Test
-	public void uploadToArtifactoryWithPlainCredentialsFromSettings(UploadMojo mojo) throws IOException, MojoExecutionException {
+	public void uploadToArtifactoryWithPlainCredentialsFromSettings(UploadMojo mojo)
+		throws IOException, MojoExecutionException, BadUploadException {
 		final Server server = new Server();
 		server.setId("my-artifactory");
 		server.setUsername("foo");
@@ -156,11 +165,13 @@ public class UploadMojoTest {
 	}
 
 	@Test
-	public void verifyHttpConnectionForChartmuseumUpload(UploadMojo uploadMojo) throws IOException {
+	public void verifyHttpConnectionForChartmuseumUpload(UploadMojo uploadMojo) throws IOException, MojoExecutionException {
 		final HelmRepository helmRepo = new HelmRepository();
 		helmRepo.setType(RepoType.CHARTMUSEUM);
 		helmRepo.setName("my-chartmuseum");
 		helmRepo.setUrl("https://somwhere.com/repo");
+		helmRepo.setUsername("foo");
+		helmRepo.setPassword("bar");
 		uploadMojo.setUploadRepoStable(helmRepo);
 
 		// Call
@@ -204,6 +215,33 @@ public class UploadMojoTest {
 		uploadMojo.execute();
 
 		verify(uploadMojo).getConnectionForUploadToArtifactory(fileToUpload);
+	}
+
+	@Test
+	public void verifyUploadToHarbor(UploadMojo uploadMojo)
+		throws MojoExecutionException, IOException, BadUploadException {
+		final URL resource = this.getClass().getResource("app-0.1.0.tgz");
+		final File fileToUpload = new File(resource.getFile());
+		final List<String> tgzs = new ArrayList<>();
+		tgzs.add(resource.getFile());
+
+		final HelmRepository helmRepo = new HelmRepository();
+		helmRepo.setType(RepoType.HARBOR);
+		helmRepo.setName("my-artifactory");
+		helmRepo.setUrl("https://somwhere.com/repo");
+		helmRepo.setUsername("foo");
+		helmRepo.setPassword("bar");
+		uploadMojo.setUploadRepoStable(helmRepo);
+
+		doReturn(helmRepo).when(uploadMojo).getHelmUploadRepo();
+		doReturn(tgzs).when(uploadMojo).getChartTgzs(anyString());
+
+		doNothing().when(uploadMojo).uploadToHarbor(fileToUpload);
+
+		// call Mojo
+		uploadMojo.execute();
+
+		verify(uploadMojo).uploadToHarbor(fileToUpload);
 	}
 
 	@Test
