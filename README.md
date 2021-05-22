@@ -189,7 +189,6 @@ and disables the auto-detection feature:
             <type>CHARTMUSEUM</type>
         </uploadRepoSnapshot>
         <helmDownloadUrl>https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz</helmDownloadUrl>
-        <helmHomeDirectory>${project.basedir}/target/helm/home</helmHomeDirectory>
         <registryConfig>~/.config/helm/registry.json</registryConfig>
         <repositoryCache>~/.cache/helm/repository</repositoryCache>
         <repositoryConfig>~/.config/helm/repositories.yaml</repositoryConfig>
