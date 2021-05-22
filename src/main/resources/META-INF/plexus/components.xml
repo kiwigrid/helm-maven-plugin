@@ -12,6 +12,7 @@
 						<phases>
 							<initialize>com.kiwigrid:helm-maven-plugin:init</initialize>
 							<test>com.kiwigrid:helm-maven-plugin:lint</test>
+							<prepare-package>com.kiwigrid:helm-maven-plugin:dependency-build</prepare-package>
 							<package>com.kiwigrid:helm-maven-plugin:package</package>
 							<deploy>com.kiwigrid:helm-maven-plugin:upload</deploy>
 						</phases>

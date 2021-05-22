@@ -34,7 +34,7 @@ Add following dependency to your pom.xml:
 <dependency>
   <groupId>com.kiwigrid</groupId>
   <artifactId>helm-maven-plugin</artifactId>
-  <version>5.6</version>
+  <version>5.7</version>
 </dependency>
 ```
 
@@ -50,7 +50,7 @@ The default setting is to construct the Helm download URL based upon the detecte
     <plugin>
       <groupId>com.kiwigrid</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
+      <version>5.7</version>
       <configuration>
         <chartDirectory>${project.basedir}</chartDirectory>
         <chartVersion>${project.version}</chartVersion>
@@ -69,7 +69,7 @@ The default setting is to construct the Helm download URL based upon the detecte
     <plugin>
       <groupId>com.kiwigrid</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
+      <version>5.7</version>
       <configuration>
         <chartDirectory>${project.basedir}</chartDirectory>
         <chartVersion>${project.version}</chartVersion>
@@ -93,7 +93,7 @@ When `useLocalHelmBinary` is enabled, the plugin by default will search for the 
     <plugin>
       <groupId>com.kiwigrid</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
+      <version>5.7</version>
       <configuration>
         <chartDirectory>${project.basedir}</chartDirectory>
         <chartVersion>${project.version}</chartVersion>
@@ -116,7 +116,7 @@ and disables the auto-detection feature:
     <plugin>
       <groupId>com.kiwigrid</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
+      <version>5.7</version>
       <configuration>
         <chartDirectory>${project.basedir}</chartDirectory>
         <chartVersion>${project.version}</chartVersion>
@@ -139,7 +139,7 @@ and disables the auto-detection feature:
     <plugin>
       <groupId>com.kiwigrid</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
+      <version>5.7</version>
       <configuration>
         <chartDirectory>${project.basedir}</chartDirectory>
         <chartVersion>${project.version}</chartVersion>
@@ -170,14 +170,14 @@ and disables the auto-detection feature:
     <plugin>
       <groupId>com.kiwigrid</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
+      <version>5.7</version>
       <configuration>
         <chartDirectory>${project.basedir}</chartDirectory>
         <chartVersion>${project.version}</chartVersion>
         <uploadRepoStable>
             <name>stable-repo</name>
             <url>https://repo.example.com/artifactory/helm-stable</url>
-            <!-- Artifacotry requires basic authentication --> 
+            <!-- Artifactory requires basic authentication --> 
             <!-- which is supported from HELM version >= 2.9 -->
             <type>ARTIFACTORY</type>
             <username>foo</username>
@@ -277,7 +277,7 @@ Parameter | Type | User Property | Required | Description
 
 ## Packaging with the Helm Lifecycle
 
-To keep your pom files small you can use 'helm' packaging. This binds `helm:init` to the initialize phase, `helm:lint` to the test phase, `helm:package` to the package phase and `helm:upload` to the deploy phase.
+To keep your pom files small you can use 'helm' packaging. This binds `helm:init` to the initialize phase, `helm:lint` to the test phase, `helm:dependency-build` to the prepare-package phase, `helm:package` to the package phase and `helm:upload` to the deploy phase.
 
 ```xml
 <pom>
