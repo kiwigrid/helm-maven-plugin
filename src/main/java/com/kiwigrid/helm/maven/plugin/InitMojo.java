@@ -53,6 +53,11 @@ public class InitMojo extends AbstractHelmMojo {
 	@Parameter(property = "helm.init.add-default-repo", defaultValue = "true")
 	private boolean addDefaultRepo;
 
+	@Parameter(property = "helm.init.add-upload-repos", defaultValue = "false")
+	private boolean addUploadRepos;
+
+	public static final String STABLE_HELM_REPO = "https://charts.helm.sh/stable";
+
 	public void execute() throws MojoExecutionException {
 
 		if (skip || skipInit) {
@@ -79,38 +84,59 @@ public class InitMojo extends AbstractHelmMojo {
 		}
 
 		if (addDefaultRepo) {
-			getLog().info("Adding default repo [stable]");
-			callCli(getHelmExecuteablePath()
-							+ " repo add stable https://charts.helm.sh/stable"
-							+ " "
-							+ (StringUtils.isNotEmpty(getRegistryConfig()) ? " --registry-config " + getRegistryConfig() : "")
-							+ (StringUtils.isNotEmpty(getRepositoryCache()) ?
-							" --repository-cache " + getRepositoryCache() :
-							"")
-							+ (StringUtils.isNotEmpty(getRepositoryConfig()) ?
-							" --repository-config " + getRepositoryConfig() :
-							""),
-					"Unable add repo",
-					false);
+			HelmRepository stableHelmRepo = new HelmRepository();
+			stableHelmRepo.setName("stable");
+			stableHelmRepo.setUrl(STABLE_HELM_REPO);
+			addRepository(stableHelmRepo, false);
+		}
+
+		if (addUploadRepos) {
+			if (getUploadRepoStable() != null) {
+				addRepository(getUploadRepoStable());
+			}
+
+			//add the upload snapshot repo only if it's name differs to the upload repo stable name
+			if (getUploadRepoSnapshot() != null && (getUploadRepoStable()==null || !getUploadRepoStable().getName().equals(getUploadRepoSnapshot().getName()))) {
+				addRepository(getUploadRepoSnapshot());
+			}
 		}
 
 		if (getHelmExtraRepos() != null) {
 			for (HelmRepository repository : getHelmExtraRepos()) {
-				getLog().info("Adding repo [" + repository +"]");
-				PasswordAuthentication auth = getAuthentication(repository);
-				callCli(getHelmExecuteablePath()
-								+ " repo add "
-								+ repository.getName()
-								+ " "
-								+ repository.getUrl()
-								+ (StringUtils.isNotEmpty(getRegistryConfig()) ? " --registry-config=" + getRegistryConfig() : "")
-								+ (StringUtils.isNotEmpty(getRepositoryCache()) ? " --repository-cache=" + getRepositoryCache() : "")
-								+ (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : "")
-								+ (auth != null ? " --username=" + auth.getUserName() + " --password=" + String.valueOf(auth.getPassword()) : ""),
-						"Unable add repo",
-						false);
+				addRepository(repository);
 			}
 		}
+	}
+
+	/**
+	 * Adds the helm repository to the helm, with repo authentication
+	 *
+	 * @param repository - helm repository to be added
+	 */
+	private void addRepository(final HelmRepository repository) throws MojoExecutionException {
+		addRepository(repository, true);
+	}
+
+	/**
+	 * Adds the helm repository to the helm
+	 *
+	 * @param repository - helm repository to be added
+	 * @param authenticationRequired - defines whether the authentication is required
+	 */
+	private void addRepository(final HelmRepository repository, boolean authenticationRequired) throws MojoExecutionException {
+		getLog().info("Adding repo [" + repository + "]");
+		PasswordAuthentication auth = authenticationRequired ? getAuthentication(repository) : null;
+		callCli(getHelmExecuteablePath()
+						+ " repo add "
+						+ repository.getName()
+						+ " "
+						+ repository.getUrl()
+						+ (StringUtils.isNotEmpty(getRegistryConfig()) ? " --registry-config=" + getRegistryConfig() : "")
+						+ (StringUtils.isNotEmpty(getRepositoryCache()) ? " --repository-cache=" + getRepositoryCache() : "")
+						+ (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : "")
+						+ (auth != null ? " --username=" + auth.getUserName() + " --password=" + String.valueOf(auth.getPassword()) : ""),
+						"Unable add repo",
+						false);
 	}
 
 	protected void downloadAndUnpackHelm() throws MojoExecutionException {
@@ -175,6 +201,14 @@ public class InitMojo extends AbstractHelmMojo {
 
 	public void setAddDefaultRepo(boolean addDefaultRepo) {
 		this.addDefaultRepo = addDefaultRepo;
+	}
+
+	public boolean isAddUploadRepos() {
+		return addUploadRepos;
+	}
+
+	public void setAddUploadRepos(boolean addUploadRepos) {
+		this.addUploadRepos = addUploadRepos;
 	}
 
 	private void addExecPermission(final Path helm) throws IOException {

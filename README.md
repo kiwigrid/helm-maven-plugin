@@ -265,6 +265,7 @@ Parameter | Type | User Property | Required | Description
 `<uploadRepoSnapshot>`| [HelmRepository](./src/main/java/com/kiwigrid/helm/maven/plugin/HelmRepository.java) | helm.uploadRepo.snapshot | false | Upload repository for snapshot charts (determined by version postfix 'SNAPSHOT')
 `<lintStrict>` | boolean | helm.lint.strict | false | run lint command with strict option (fail on lint warnings)
 `<addDefaultRepo>` | boolean | helm.init.add-default-repo | true | If true, stable repo (https://charts.helm.sh/stable) will be added
+`<addUploadRepos>` | boolean | helm.init.add-upload-repos | false | If true, upload repos (uploadRepoStable, uploadRepoSnapshot) will be added, if configured
 `<skip>` | boolean | helm.skip | false | skip plugin execution
 `<skipInit>` | boolean | helm.init.skip | false | skip init goal
 `<skipLint>` | boolean | helm.lint.skip | false | skip lint goal
