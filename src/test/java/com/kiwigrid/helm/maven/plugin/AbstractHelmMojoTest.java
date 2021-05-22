@@ -81,6 +81,20 @@ class AbstractHelmMojoTest {
         assertFalse(chartDirectories.contains(excludeDir2), "Charts dirs [" + chartDirectories + "] should not contain excluded dirs [" + excludeDir2 + "]");
     }
 
+    @Test
+    void formatIfValueIsNotEmpty() {
+        String formatString = "Test %s data";
+        String value = "format";
+
+        String formatWithValue = subjectSpy.formatIfValueIsNotEmpty(formatString, value);
+        String formatWithNullValue = subjectSpy.formatIfValueIsNotEmpty(formatString, null);
+        String formatWithEmptyValue = subjectSpy.formatIfValueIsNotEmpty(formatString, "");
+
+        assertEquals("Test format data", formatWithValue);
+        assertEquals("", formatWithNullValue);
+        assertEquals("", formatWithEmptyValue);
+    }
+
     @Nested
     class WhenUseLocalBinaryAndAutoDetectIsEnabled {
 

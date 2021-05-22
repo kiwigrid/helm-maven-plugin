@@ -14,7 +14,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @since 14.11.17
  */
 @Mojo(name = "dry-run", defaultPhase = LifecyclePhase.TEST)
-public class DryRunMojo extends AbstractHelmMojo {
+public class DryRunMojo extends AbstractHelmWithValueOverrideMojo {
 
 	@Parameter(property = "action", defaultValue = "install")
 	private String action;
@@ -35,7 +35,8 @@ public class DryRunMojo extends AbstractHelmMojo {
 					+ " --dry-run --generate-name"
 					+ (StringUtils.isNotEmpty(getRegistryConfig()) ? " --registry-config=" + getRegistryConfig() : "")
 					+ (StringUtils.isNotEmpty(getRepositoryCache()) ? " --repository-cache=" + getRepositoryCache() : "")
-					+ (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : ""),
+					+ (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : "")
+					+ getValuesOptions(),
 					"There are test failures", true);
 		}
 	}
