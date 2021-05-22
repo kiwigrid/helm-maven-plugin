@@ -1,7 +1,5 @@
 package com.kiwigrid.helm.maven.plugin;
 
-import java.util.Arrays;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -19,6 +17,15 @@ public class PackageMojo extends AbstractHelmMojo {
 
 	@Parameter(property = "helm.package.skip", defaultValue = "false")
 	private boolean skipPackage;
+
+	@Parameter(property = "helm.package.keyring")
+	private String keyring;
+
+	@Parameter(property = "helm.package.key")
+	private String key;
+
+	@Parameter(property = "helm.package.passphrase")
+	private String passphrase;
 
 	public void execute()
 			throws MojoExecutionException
@@ -50,8 +57,23 @@ public class PackageMojo extends AbstractHelmMojo {
 				getLog().info(String.format("Setting App version to %s", getAppVersion()));
 				helmCommand = helmCommand + " --app-version " + getAppVersion();
 			}
-			callCli(helmCommand, "Unable to package chart at " + inputDirectory, true);
+
+			String stdin = null;
+			if (isSignEnabled()) {
+				getLog().info("Enable signing");
+				helmCommand = helmCommand + " --sign --keyring " + keyring + " --key " + key;
+				if (StringUtils.isNotEmpty(passphrase)) {
+					helmCommand += " --passphrase-file -";
+					stdin = passphrase;
+				}
+			}
+
+			callCli(helmCommand, "Unable to package chart at " + inputDirectory, true, stdin);
 		}
+	}
+
+	private boolean isSignEnabled() {
+		return StringUtils.isNotEmpty(keyring) && StringUtils.isNotEmpty(key);
 	}
 
 }

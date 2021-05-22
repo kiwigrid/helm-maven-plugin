@@ -193,6 +193,10 @@ and disables the auto-detection feature:
         <registryConfig>~/.config/helm/registry.json</registryConfig>
         <repositoryCache>~/.cache/helm/repository</repositoryCache>
         <repositoryConfig>~/.config/helm/repositories.yaml</repositoryConfig>
+        <!-- Add a gpg signature to the chart -->
+        <keyring>~/.gpg/secring.gpg</keyring>
+        <key>MySigningKey</key>
+        <passphrase>SecretPassPhrase</passphrase>
         <!-- Lint with strict mode -->
         <lintStrict>true</lintStrict>
         <!-- Disable adding of default repo stable https://charts.helm.sh/stable -->
@@ -273,6 +277,9 @@ Parameter | Type | User Property | Required | Description
 `<skipPackage>` | boolean | helm.package.skip | false | skip package goal
 `<skipUpload>` | boolean | helm.upload.skip | false | skip upload goal
 `<security>` | string | helm.security | false | path to your [settings-security.xml](https://maven.apache.org/guides/mini/guide-encryption.html) (default: `~/.m2/settings-security.xml`)
+`<keyring>` | string | helm.package.keyring | false | path to gpg secret keyring for signing
+`<key>` | string  | helm.package.key | false | name of gpg key in keyring
+`<passphrase>` | string | helm.package.passphrase | false | passphrase for gpg key (requires helm 3.4 or newer)
 `<values>` | [ValueOverride](./src/main/java/com/kiwigrid/helm/maven/plugin/ValueOverride.java) | helm.values | false | override some values for linting with helm.values.overrides (--set option), helm.values.stringOverrides (--set-string option), helm.values.fileOverrides (--set-file option) and last but not least helm.values.yamlFile (--values option)
 
 ## Packaging with the Helm Lifecycle

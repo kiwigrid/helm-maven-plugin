@@ -41,7 +41,7 @@ public class UploadMojo extends AbstractHelmMojo {
 			return;
 		}
 		getLog().info("Uploading to " + getHelmUploadUrl() + "\n");
-		for (String chartPackageFile : getChartTgzs(getOutputDirectory())) {
+		for (String chartPackageFile : getChartFiles(getOutputDirectory())) {
 			getLog().info("Uploading " + chartPackageFile + "...");
 			try {
 				uploadSingle(chartPackageFile);
