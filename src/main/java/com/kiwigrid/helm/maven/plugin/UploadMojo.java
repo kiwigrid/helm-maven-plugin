@@ -9,6 +9,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.settings.Server;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -113,10 +114,23 @@ public class UploadMojo extends AbstractHelmMojo {
 
 	private void setBasicAuthHeader(HttpURLConnection connection) {
 		HelmRepository helmUploadRepo = getHelmUploadRepo();
+		String id = helmUploadRepo.getName();
 		if (StringUtils.isNotEmpty(helmUploadRepo.getUsername()) && StringUtils.isNotEmpty(helmUploadRepo.getPassword())) {
+			getLog().info("Repo " + id + " has credentials definded, skip searching in server list.");
 			String encoded = Base64.getEncoder().encodeToString((helmUploadRepo.getUsername() + ":" + helmUploadRepo.getPassword()).getBytes(StandardCharsets.UTF_8));  //Java 8
 			connection.setRequestProperty("Authorization", "Basic " + encoded);
+			return;
 		}
+
+		Server server = getSettings().getServer(id);
+
+		if (server != null && StringUtils.isNotEmpty(server.getUsername()) && StringUtils.isNotEmpty(server.getPassword())) {
+			getLog().info("Use credentials from server list for " + id + ".");
+			String encoded = Base64.getEncoder().encodeToString((server.getUsername() + ":" + server.getPassword()).getBytes(StandardCharsets.UTF_8));  //Java 8
+			connection.setRequestProperty("Authorization", "Basic " + encoded);
+			return;
+		}
+		getLog().info("No credentials found for " + id + " in configuration or settings.xml server list.");
 	}
 
 	protected HttpURLConnection getConnectionForUploadToArtifactory(File file) throws IOException, MojoExecutionException {

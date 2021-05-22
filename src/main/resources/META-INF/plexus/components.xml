@@ -11,6 +11,7 @@
 						<id>default</id>
 						<phases>
 							<initialize>com.kiwigrid:helm-maven-plugin:init</initialize>
+							<compile>com.kiwigrid:helm-maven-plugin:dependency-build</compile>
 							<test>com.kiwigrid:helm-maven-plugin:lint</test>
 							<package>com.kiwigrid:helm-maven-plugin:package</package>
 							<deploy>com.kiwigrid:helm-maven-plugin:upload</deploy>
