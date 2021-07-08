@@ -156,7 +156,7 @@ public class UploadMojoTest {
 	}
 
 	@Test
-	public void verifyHttpConnectionForChartmuseumUpload(UploadMojo uploadMojo) throws IOException {
+	public void verifyHttpConnectionForChartmuseumUpload(UploadMojo uploadMojo) throws IOException, MojoExecutionException {
 		final HelmRepository helmRepo = new HelmRepository();
 		helmRepo.setType(RepoType.CHARTMUSEUM);
 		helmRepo.setName("my-chartmuseum");

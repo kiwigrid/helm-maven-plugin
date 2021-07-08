@@ -4,7 +4,6 @@ import com.kiwigrid.helm.maven.plugin.exception.BadUploadException;
 import com.kiwigrid.helm.maven.plugin.pojo.HelmRepository;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -100,7 +99,7 @@ public class UploadMojo extends AbstractHelmMojo {
 		connection.disconnect();
 	}
 
-	protected HttpURLConnection getConnectionForUploadToChartmuseum() throws IOException {
+	protected HttpURLConnection getConnectionForUploadToChartmuseum() throws IOException, MojoExecutionException {
 		final HttpURLConnection connection = (HttpURLConnection) new URL(getHelmUploadUrl()).openConnection();
 		connection.setDoOutput(true);
 		connection.setRequestMethod("POST");
@@ -111,10 +110,10 @@ public class UploadMojo extends AbstractHelmMojo {
 		return connection;
 	}
 
-	private void setBasicAuthHeader(HttpURLConnection connection) {
-		HelmRepository helmUploadRepo = getHelmUploadRepo();
-		if (StringUtils.isNotEmpty(helmUploadRepo.getUsername()) && StringUtils.isNotEmpty(helmUploadRepo.getPassword())) {
-			String encoded = Base64.getEncoder().encodeToString((helmUploadRepo.getUsername() + ":" + helmUploadRepo.getPassword()).getBytes(StandardCharsets.UTF_8));  //Java 8
+	private void setBasicAuthHeader(HttpURLConnection connection) throws MojoExecutionException {
+		PasswordAuthentication authentication = getAuthentication(getHelmUploadRepo());
+		if (authentication != null) {
+			String encoded = Base64.getEncoder().encodeToString((authentication.getUserName() + ":" + new String(authentication.getPassword())).getBytes(StandardCharsets.UTF_8));  //Java 8
 			connection.setRequestProperty("Authorization", "Basic " + encoded);
 		}
 	}
